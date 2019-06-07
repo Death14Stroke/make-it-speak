@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".activity.MainActivity">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/gradient_bg">
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/messageTextInput"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="#FAFDC5"
+            app:layout_constraintHeight_percent=".4"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/audioBtn">
+            <EditText
+                android:id="@+id/messageET"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:inputType="textMultiLine|textCapSentences"
+                android:allowUndo="true"
+                android:hint="@string/enter_your_message"
+                android:gravity="start"
+                android:padding="10dp"
+                tools:ignore="Autofill"
+                tools:targetApi="m" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <Button
+            android:id="@+id/audioBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/round_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:padding="10dp"
+            android:text="@string/convert"
+            android:textAllCaps="false"
+            android:textColor="@color/colorPrimary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/messageTextInput"
+            tools:ignore="UnusedAttribute" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
