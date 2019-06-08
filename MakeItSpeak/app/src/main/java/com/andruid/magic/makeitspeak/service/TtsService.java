@@ -1,6 +1,8 @@
 package com.andruid.magic.makeitspeak.service;
 
+import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
@@ -9,20 +11,22 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.widget.Toast;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.core.app.NotificationCompat;
 
 import com.andruid.magic.makeitspeak.R;
 import com.andruid.magic.makeitspeak.database.AudioText;
 import com.andruid.magic.makeitspeak.database.HistoryDatabase;
+import com.andruid.magic.makeitspeak.util.NotificationUtil;
 
 import java.io.File;
 import java.util.Locale;
+import java.util.Objects;
 
 import timber.log.Timber;
 
 import static com.andruid.magic.makeitspeak.data.Constants.INTENT_TTS;
 import static com.andruid.magic.makeitspeak.data.Constants.KEY_INPUT;
-import static com.andruid.magic.makeitspeak.data.Constants.KEY_UTTERANCE_ID;
+import static com.andruid.magic.makeitspeak.data.Constants.NOTIFICATION_ID;
 
 public class TtsService extends Service implements TextToSpeech.OnInitListener {
     private TextToSpeech tts;
@@ -32,6 +36,7 @@ public class TtsService extends Service implements TextToSpeech.OnInitListener {
     private HistoryDatabase database;
     private String message;
     private long created;
+    private NotificationCompat.Builder builder;
 
     @Override
     public void onCreate() {
@@ -46,9 +51,12 @@ public class TtsService extends Service implements TextToSpeech.OnInitListener {
             public void onDone(String utteranceId) {
                 AudioText audioText = new AudioText(utteranceId, message, created);
                 database.historyDao().insertRecord(audioText);
-                Intent intent = new Intent(INTENT_TTS);
-                intent.putExtra(KEY_UTTERANCE_ID, utteranceId);
-                LocalBroadcastManager.getInstance(TtsService.this).sendBroadcast(intent);
+                stopForeground(true);
+                NotificationManager nm = (NotificationManager) getSystemService(
+                        Context.NOTIFICATION_SERVICE);
+                builder = NotificationUtil.buildCompletedNotification(getApplicationContext(),
+                        audioText);
+                nm.notify(NOTIFICATION_ID, Objects.requireNonNull(builder).build());
             }
 
             @Override
@@ -97,6 +105,8 @@ public class TtsService extends Service implements TextToSpeech.OnInitListener {
         message = input;
         String utteranceId = "tts_"+created;
         File file = new File(dir, utteranceId+".mp3");
+        builder = NotificationUtil.buildProgressNotification(this, file.getName());
+        startForeground(NOTIFICATION_ID, Objects.requireNonNull(builder).build());
         tts.synthesizeToFile(input, null, file, utteranceId);
     }
 }

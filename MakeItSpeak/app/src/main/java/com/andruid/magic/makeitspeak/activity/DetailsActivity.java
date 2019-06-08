@@ -1,5 +1,6 @@
 package com.andruid.magic.makeitspeak.activity;
 
+import android.Manifest;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,9 +19,9 @@ import com.andruid.magic.makeitspeak.database.AudioText;
 import com.andruid.magic.makeitspeak.databinding.ActivityDetailsBinding;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.audio.AudioAttributes;
+import com.google.android.exoplayer2.audio.AudioListener;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
@@ -28,6 +29,12 @@ import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.single.PermissionListener;
 
 import java.io.File;
 
@@ -35,7 +42,7 @@ import timber.log.Timber;
 
 import static com.andruid.magic.makeitspeak.data.Constants.KEY_AUDIO_TEXT;
 
-public class DetailsActivity extends AppCompatActivity implements Player.EventListener {
+public class DetailsActivity extends AppCompatActivity implements AudioListener {
     private static final String TAG = "exolog";
     private ActivityDetailsBinding binding;
     private SimpleExoPlayer exoPlayer;
@@ -88,6 +95,12 @@ public class DetailsActivity extends AppCompatActivity implements Player.EventLi
         return true;
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        binding.visualizer.release();
+    }
+
     private void shareAudio() {
         Intent shareAudioIntent = new Intent(Intent.ACTION_SEND);
         shareAudioIntent.setType("audio/*");
@@ -114,6 +127,7 @@ public class DetailsActivity extends AppCompatActivity implements Player.EventLi
         MediaSource mediaSource = new ExtractorMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(Uri.fromFile(file));
         exoPlayer.prepare(mediaSource);
+        exoPlayer.addAudioListener(this);
         Timber.tag(TAG).d("prepared exoplayer");
     }
 
@@ -127,6 +141,29 @@ public class DetailsActivity extends AppCompatActivity implements Player.EventLi
                 .setContentType(C.CONTENT_TYPE_MUSIC)
                 .build();
         exoPlayer.setAudioAttributes(audioAttributes,true);
-        exoPlayer.addListener(this);
+    }
+
+    @Override
+    public void onAudioSessionId(int audioSessionId) {
+        Timber.tag(TAG).d("audio session id: %d", audioSessionId);
+        Dexter.withActivity(this)
+                .withPermission(Manifest.permission.RECORD_AUDIO)
+                .withListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted(PermissionGrantedResponse response) {
+                        binding.visualizer.setAudioSessionId(audioSessionId);
+                    }
+
+                    @Override
+                    public void onPermissionDenied(PermissionDeniedResponse response) {
+                        Toast.makeText(getApplicationContext(),
+                                response.getPermissionName()+" denied", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).check();
     }
 }

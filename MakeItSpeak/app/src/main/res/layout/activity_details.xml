@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout  xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:custom="http://schemas.android.com/apk/res-auto">
     <data>
         <variable
             name="audioText"
@@ -12,6 +13,24 @@
         android:layout_height="match_parent"
         android:background="@drawable/gradient_bg"
         tools:context=".activity.DetailsActivity">
+        <com.gauravk.audiovisualizer.visualizer.WaveVisualizer
+            android:id="@+id/visualizer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            custom:avDensity="0.8"
+            custom:avType="fill"
+            custom:avColor="#FFB300"
+            custom:avSpeed="normal"
+            app:layout_constraintHeight_percent="0.3"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/playerControlView" />
+        <com.google.android.exoplayer2.ui.PlayerControlView
+            android:id="@+id/playerControlView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:show_timeout="0"
+            app:layout_constraintBottom_toTopOf="@id/messageTV"
+            app:layout_constraintTop_toBottomOf="@id/visualizer"/>
         <TextView
             android:id="@+id/messageTV"
             android:layout_width="match_parent"
@@ -20,17 +39,10 @@
             android:textSize="18sp"
             android:padding="10dp"
             android:textColor="@color/colorPrimaryDark"
-            app:layout_constraintHeight_percent=".7"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/playerControlView"
+            app:layout_constraintHeight_percent=".5"
+            app:layout_constraintTop_toBottomOf="@id/playerControlView"
+            app:layout_constraintBottom_toBottomOf="parent"
             android:text="@{audioText.message}"
             android:scrollbars="vertical"/>
-        <com.google.android.exoplayer2.ui.PlayerControlView
-            android:id="@+id/playerControlView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:show_timeout="0"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/messageTV"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
